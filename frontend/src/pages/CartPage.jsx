@@ -1,34 +1,22 @@
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleCheckout = async () => {
     if (!items.length) return;
-    const userInfo = {
-      id: user?.id,
-      email: user?.email ?? "guest@example.com",
-      fullName: "Guest",
-      address_line1: "Test address",
-      city: "Bangkok",
-      province: "",
-      postal_code: "10200",
-      phone: "",
-    };
-
-    const res = await fetch(`${API_BASE}/api/create-checkout-session`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, user: userInfo }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location = data.url;
+    // if you want to force login first:
+    if (!user) {
+      navigate("/auth", { state: { from: "/checkout" } });
+      return;
     }
+    navigate("/checkout");
   };
 
   return (

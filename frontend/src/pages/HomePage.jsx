@@ -14,7 +14,7 @@ export default function HomePage() {
       .catch((err) => console.error("Failed to load products:", err));
   }, []);
 
-  const bestSellers = products.filter((p) => p.is_best_seller);
+  const bestSellers = products.filter((p) => p.is_best_seller).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-choSand text-choForest">

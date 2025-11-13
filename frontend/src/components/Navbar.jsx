@@ -1,11 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
+import { useUserProfile } from "../hooks/useUserProfile";
+
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { profile } = useUserProfile();
+
 
   const handleLogout = async () => {
     try {
@@ -40,11 +44,7 @@ export default function Navbar() {
             </a>
           </li>
 
-          <li>
-            <a href="/#bestsellers" className="hover:text-choForest">
-              Best seller
-            </a>
-          </li>
+          
           <li>
             <Link to="/products" className="hover:text-choForest">
               Shop
@@ -55,6 +55,12 @@ export default function Navbar() {
               Cart
             </Link>
           </li>
+          <li>
+  <Link to="/notifications" className="hover:text-choForest">
+    Notifications
+  </Link>
+</li>
+
 
           {/* Profile / Login area */}
           {!loading && (
@@ -73,29 +79,65 @@ export default function Navbar() {
                 </button>
 
                 {open && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 overflow-hidden">
-                    <div className="px-3 py-2 border-b border-black/5">
-                      <p className="text-[0.6rem] text-gray-500 uppercase tracking-[0.18em] mb-1">
-                        Logged in
-                      </p>
-                      <p className="text-xs text-gray-800 truncate">
-                        {user.email}
-                      </p>
-                    </div>
-                    <button
-                      onClick={goProfile}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-choSand/60"
-                    >
-                      View profile
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-black/5 overflow-hidden">
+    <div className="px-3 py-2 border-b border-black/5">
+      <p className="text-[0.6rem] text-gray-500 uppercase tracking-[0.18em] mb-1">
+        Logged in
+      </p>
+      <p className="text-xs text-gray-800 truncate">
+        {user.email}
+      </p>
+    </div>
+
+    {/* ADMIN BUTTON */}
+    {profile?.role === "admin" && (
+  <>
+    <button
+      onClick={() => {
+        setOpen(false);
+        navigate("/admin/products");
+      }}
+      className="w-full text-left px-3 py-2 text-xs hover:bg-choSand/60"
+    >
+      Admin · Products
+    </button>
+    <button
+      onClick={() => {
+        setOpen(false);
+        navigate("/admin/orders");
+      }}
+      className="w-full text-left px-3 py-2 text-xs hover:bg-choSand/60"
+    >
+      Admin · Orders
+    </button>
+    <button
+      onClick={() => {
+        setOpen(false);
+        navigate("/admin/notifications");
+      }}
+      className="w-full text-left px-3 py-2 text-xs hover:bg-choSand/60"
+    >
+      Admin · Notifications
+    </button>
+  </>
+)}
+
+
+    <button
+      onClick={goProfile}
+      className="w-full text-left px-3 py-2 text-xs hover:bg-choSand/60"
+    >
+      View profile
+    </button>
+
+    <button
+      onClick={handleLogout}
+      className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+    >
+      Logout
+    </button>
+  </div>
+)}
               </li>
             ) : (
               <li>

@@ -35,23 +35,54 @@ export default function ProductsPage() {
           {products.map((p) => (
             <article
               key={p.id}
-              className="bg-[#f7f3e6] rounded-2xl p-5 shadow-sm flex flex-col hover:-translate-y-1 hover:shadow-md transition"
+              className={`relative bg-[#f7f3e6] rounded-2xl p-5 shadow-sm flex flex-col transition
+                ${
+                  p.stock === 0
+                    ? "opacity-50" // dim sold-out products
+                    : "hover:-translate-y-1 hover:shadow-md"
+                }`}
             >
+              {/* OUT OF STOCK BADGE */}
+              {p.stock === 0 && (
+                <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                  Out of stock
+                </span>
+              )}
+
+              {/* image placeholder (you can replace this with real img) */}
               <div className="h-40 bg-choForest/15 mb-3 rounded-xl" />
+
               <h2 className="font-heading text-xl mb-1">{p.name}</h2>
               <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                 {p.description}
               </p>
-              <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-4">
+              <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-1">
                 {p.mood} • {p.size}
               </p>
+
+              {/* optional: show stock count if you like */}
+              {typeof p.stock === "number" && (
+                <p className="text-[0.7rem] text-gray-500 mb-4">
+                  {p.stock === 0 ? "Not available" : `In stock: ${p.stock}`}
+                </p>
+              )}
+
               <div className="mt-auto flex items-center justify-between">
                 <span className="font-semibold text-sm">{p.price} THB</span>
+
                 <button
-                  onClick={() => addItem(p, 1)}
-                  className="text-xs border border-choForest rounded-full px-4 py-1 hover:bg-choForest hover:text-white transition"
+                  onClick={() => {
+                    if (p.stock > 0) addItem(p, 1);
+                  }}
+                  disabled={p.stock === 0}
+                  className={`text-xs rounded-full px-4 py-1 border transition
+                    ${
+                      p.stock === 0
+                        ? "border-gray-300 bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "border-choForest hover:bg-choForest hover:text-white"
+                    }`}
                 >
-                  Add to cart
+                  {p.stock === 0 ? "Unavailable" : "Add to cart"}
                 </button>
               </div>
             </article>
