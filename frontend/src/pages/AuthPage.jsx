@@ -1,25 +1,36 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function AuthPage() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const { login, signup } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setBusy(true);
     try {
-      let res;
       if (mode === "login") {
-        res = await supabase.auth.signInWithPassword({ email, password });
+        await login(email, password);
       } else {
-        res = await supabase.auth.signUp({ email, password });
+        await signup(email, password);
       }
-      if (res.error) setError(res.error.message);
+      // redirect to previous page or home
+      navigate(from, { replace: true });
     } catch (err) {
-      setError("Something went wrong");
+      setError(err.message || "Something went wrong");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -32,7 +43,7 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 text-sm"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -40,15 +51,24 @@ export default function AuthPage() {
           />
           <input
             type="password"
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 text-sm"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button className="w-full rounded-full bg-choForest text-white py-2 mt-2">
-            {mode === "login" ? "Log in" : "Sign up"}
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
+          <button
+            disabled={busy}
+            className="w-full rounded-full bg-choForest text-white py-2 mt-2 text-sm disabled:opacity-60"
+          >
+            {busy
+              ? "Please wait..."
+              : mode === "login"
+              ? "Log in"
+              : "Sign up"}
           </button>
         </form>
         <button
