@@ -1,0 +1,52 @@
+# -------------------------
+# GENERAL
+# -------------------------
+node_modules/
+dist/
+build/
+.DS_Store
+.env
+.env.local
+.env.development
+.env.production
+*.log
+
+# -------------------------
+# FRONTEND
+# -------------------------
+frontend/node_modules/
+frontend/dist/
+
+# ignore Vite cache
+frontend/.vite/
+
+# -------------------------
+# BACKEND
+# -------------------------
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.local
+
+# Security: NEVER expose service role key
+backend/.env*
+!backend/.env.example
+
+# -------------------------
+# OS / EDITOR FILES
+# -------------------------
+*.swp
+*.swo
+*.bak
+Thumbs.db
+
+# vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# -------------------------
+# SUPABASE
+# -------------------------
+supabase/.temp
+supabase/.env

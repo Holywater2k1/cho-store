@@ -1,0 +1,18 @@
+{
+  "name": "cho-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.19.0",
+    "@supabase/supabase-js": "^2.48.0",
+    "stripe": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
