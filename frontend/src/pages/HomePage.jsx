@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import { useCart } from "../context/CartContext";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -19,18 +18,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-choSand text-choForest">
-      {/* HERO */}
+      {/* ================= HERO ================= */}
       <section
         id="home"
         className="relative min-h-[70vh] flex items-center justify-center text-center text-white overflow-hidden"
       >
-        {/* Background image – later you can use bg-[url('/hero.jpg')] */}
+        {/* Background – later you can swap to bg-[url('/hero.jpg')] */}
         <div className="absolute inset-0 bg-choForest" />
         <div className="absolute inset-0 bg-black/35" />
 
-        
-
-        <div className="relative max-w-3xl px-6 pt-16 md:pt-10">
+        <div className="relative max-w-3xl px-6 pt-8 pb-16">
           <p className="uppercase tracking-[0.4em] text-[0.65rem] md:text-xs mb-3 text-white/70">
             IT&apos;S TIME TO
           </p>
@@ -58,11 +55,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* BEST SELLERS */}
-      <section
-        id="bestsellers"
-        className="bg-[#e4deca] py-16 px-4"
-      >
+      {/* ================= BEST SELLERS ================= */}
+      <section id="bestsellers" className="bg-[#e4deca] py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500">
             BEST SELLERS
@@ -72,6 +66,7 @@ export default function HomePage() {
           </h2>
           <p className="max-w-md text-sm md:text-base text-gray-700 mb-10 leading-relaxed">
             A curated selection of scents that are always the first to sell out.
+            Perfect for gifting or lighting on a slow evening at home.
           </p>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -80,8 +75,8 @@ export default function HomePage() {
                 key={p.id}
                 className="bg-[#f7f3e6] rounded-2xl overflow-hidden shadow-sm flex flex-col hover:-translate-y-1 hover:shadow-md transition"
               >
-                {/* image placeholder – replace with <img src={p.image_url} /> later */}
-                <div className="h-44 bg-choForest/15" />
+                {/* image placeholder – swap to <img src={p.image_url} /> later */}
+                <div className="h-44 bg-gradient-to-tr from-choForest/20 via-choClay/10 to-choSand/40" />
 
                 <div className="p-5 flex-1 flex flex-col">
                   <h3 className="font-heading text-xl mb-1 leading-snug">
@@ -118,6 +113,131 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ================= MOOD CARDS ================= */}
+      <section className="bg-choSand py-16 px-4">
+        <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-3">
+          <div className="md:col-span-1">
+            <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500 mb-2">
+              MOODS
+            </p>
+            <h2 className="font-heading text-3xl mb-3">
+              Light for how you feel.
+            </h2>
+            <p className="text-sm text-gray-700">
+              Whether you need a quiet reset, deep focus, or a dreamy night,
+              Cho candles are blended to match the moment.
+            </p>
+          </div>
+
+          <div className=" md:col-span-2 grid gap-5 md:grid-cols-3">
+            <MoodCard
+              title="Calm"
+              tagline="Soft woods & warm tea"
+              desc="Slow evenings, rainy playlists and long baths."
+            />
+            <MoodCard
+              title="Focus"
+              tagline="Green citrus & herbs"
+              desc="Clean desk, study sessions and deep work."
+            />
+            <MoodCard
+              title="Dream"
+              tagline="Amber & vanilla haze"
+              desc="Late-night journaling and gentle sleep."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ================= STORY SECTION ================= */}
+      <section className="bg-choForest text-choSand py-16 px-4">
+        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-2 items-center">
+          {/* Image placeholder */}
+          <div className="h-72 md:h-80 rounded-3xl bg-gradient-to-br from-choSand/10 via-white/5 to-choClay/20 border border-white/10" />
+
+          <div>
+            <p className="uppercase tracking-[0.25em] text-[0.7rem] text-choSand/70 mb-2">
+              IN LOVE WITH CHO
+            </p>
+            <h2 className="font-heading text-3xl md:text-4xl mb-3">
+              A small studio with a big obsession.
+            </h2>
+            <p className="text-sm md:text-base text-choSand/90 mb-4 leading-relaxed">
+              Cho started as late-night experiments in a tiny Bangkok apartment:
+              mixing wax in old pots, testing scents on friends, burning through
+              notebooks of ideas.
+            </p>
+            <p className="text-sm md:text-base text-choSand/80 leading-relaxed mb-6">
+              Every candle is still poured in small batches, with scents tested
+              for balance between throw and comfort. No harsh additives, no
+              overwhelming perfumes — just quiet, warm light.
+            </p>
+            <a
+              href="/products"
+              className="inline-flex items-center justify-center rounded-full border border-choSand px-6 py-2 text-xs md:text-sm hover:bg-choSand hover:text-choForest transition"
+            >
+              Explore the collection
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CRAFT / BENEFITS ================= */}
+      <section className="bg-[#e4deca] py-14 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-heading text-2xl md:text-3xl mb-8">
+            What makes a Cho candle different?
+          </h2>
+          <div className="grid gap-6 md:grid-cols-3 text-sm text-gray-700">
+            <Feature
+              title="Clean-burning blend"
+              desc="Natural wax blend with cotton wicks for a slow, even burn and less soot."
+            />
+            <Feature
+              title="Thoughtful scent design"
+              desc="Layered top, heart and base notes — cozy but never overpowering."
+            />
+            <Feature
+              title="Made in small batches"
+              desc="Poured by hand in small runs so each batch gets full attention."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-choForest text-choSand/80 py-6 px-4 text-xs">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-3">
+          <p>&copy; {new Date().getFullYear()} Cho Candles. All rights reserved.</p>
+          <p className="text-choSand/60">
+            Made with quiet nights, lo-fi playlists and too much wax.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+/* ---------- small presentational components ---------- */
+
+function MoodCard({ title, tagline, desc }) {
+  return (
+    <article className="bg-[#f7f3e6] rounded-2xl p-5 shadow-sm border border-black/5 hover:-translate-y-1 hover:shadow-md transition">
+      <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500 mb-2">
+        {title}
+      </p>
+      <h3 className="font-heading text-lg mb-1">{tagline}</h3>
+      <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
+    </article>
+  );
+}
+
+function Feature({ title, desc }) {
+  return (
+    <div className="bg-[#f7f3e6] rounded-2xl p-5 border border-black/5">
+      <h3 className="font-heading text-base mb-2">{title}</h3>
+      <p className="text-sm leading-relaxed">{desc}</p>
     </div>
   );
 }

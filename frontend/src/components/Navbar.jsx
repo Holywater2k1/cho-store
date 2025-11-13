@@ -24,7 +24,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 w-full z-30">
-      <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4 text-xs md:text-sm bg-choSand/95 backdrop-blur">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4 text-xs md:text-sm bg-choSand/80 backdrop-blur">
         <Link
           to="/"
           className="font-heading text-lg tracking-[0.25em] text-choForest"
@@ -33,6 +33,13 @@ export default function Navbar() {
         </Link>
 
         <ul className="flex items-center gap-4 md:gap-6 text-choForest/90 relative">
+
+          <li>
+            <a href="/" className="hover:text-choForest">
+              Home
+            </a>
+          </li>
+
           <li>
             <a href="/#bestsellers" className="hover:text-choForest">
               Best seller
