@@ -35,8 +35,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-choSand">
-      <div className="bg-white rounded-xl p-8 w-full max-w-md shadow">
+    <div className="bg-choSand min-h-[calc(100vh-64px)] flex justify-center items-start px-4 pt-8 pb-6 overflow-y-auto md:items-center md:pt-0">
+      <div className="bg-white rounded-xl p-6 sm:p-8 w-full max-w-md shadow">
         <h1 className="font-heading text-2xl mb-4">
           {mode === "login" ? "Welcome back" : "Create an account"}
         </h1>
@@ -57,9 +57,7 @@ export default function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {error && (
-            <p className="text-sm text-red-600">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             disabled={busy}
             className="w-full rounded-full bg-choForest text-white py-2 mt-2 text-sm disabled:opacity-60"

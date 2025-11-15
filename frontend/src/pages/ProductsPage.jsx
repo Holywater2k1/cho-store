@@ -17,8 +17,8 @@ export default function ProductsPage() {
   const sortedProducts = [...products].sort((a, b) => {
     const aOut = !a.stock || a.stock === 0;
     const bOut = !b.stock || b.stock === 0;
-    if (aOut === bOut) return 0;      // both same availability → keep original order
-    return aOut ? 1 : -1;             // out-of-stock goes after in-stock
+    if (aOut === bOut) return 0; // both same availability → keep original order
+    return aOut ? 1 : -1; // out-of-stock goes after in-stock
   });
 
   return (
@@ -39,11 +39,12 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        {/* 👉 2 columns on mobile, 3 on md+ */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
           {sortedProducts.map((p) => (
             <article
               key={p.id}
-              className={`relative bg-[#f7f3e6] rounded-2xl p-5 shadow-sm flex flex-col transition
+              className={`relative bg-[#f7f3e6] rounded-2xl p-4 md:p-5 shadow-sm flex flex-col transition
                 ${
                   p.stock === 0
                     ? "opacity-50" // dim sold-out products
@@ -65,7 +66,7 @@ export default function ProductsPage() {
               )}
 
               {/* PRODUCT IMAGE */}
-              <div className="h-40 mb-3 rounded-xl overflow-hidden bg-choForest/10">
+              <div className="h-32 md:h-40 mb-3 rounded-xl overflow-hidden bg-choForest/10">
                 {p.image_url ? (
                   <img
                     src={p.image_url}
@@ -77,30 +78,34 @@ export default function ProductsPage() {
                 )}
               </div>
 
-              <h2 className="font-heading text-xl mb-1">{p.name}</h2>
-              <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+              <h2 className="font-heading text-base md:text-xl mb-1">
+                {p.name}
+              </h2>
+              <p className="text-xs md:text-sm text-gray-700 mb-2 line-clamp-2">
                 {p.description}
               </p>
-              <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-1">
+              <p className="text-[0.6rem] md:text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-1">
                 {p.mood} • {p.size}
               </p>
 
               {/* stock information */}
               {typeof p.stock === "number" && (
-                <p className="text-[0.7rem] text-gray-500 mb-4">
+                <p className="text-[0.6rem] md:text-[0.7rem] text-gray-500 mb-4">
                   {p.stock === 0 ? "Not available" : `In stock: ${p.stock}`}
                 </p>
               )}
 
-              <div className="mt-auto flex items-center justify-between">
-                <span className="font-semibold text-sm">{p.price} THB</span>
+              <div className="mt-auto flex items-center justify-between gap-1">
+                <span className="font-semibold text-xs md:text-sm">
+                  {p.price} THB
+                </span>
 
                 <button
                   onClick={() => {
                     if (p.stock > 0) addItem(p, 1);
                   }}
                   disabled={p.stock === 0}
-                  className={`text-xs rounded-full px-4 py-1 border transition
+                  className={`text-[0.65rem] md:text-xs rounded-full px-3 py-1 border transition
                     ${
                       p.stock === 0
                         ? "border-gray-300 bg-gray-200 text-gray-500 cursor-not-allowed"
