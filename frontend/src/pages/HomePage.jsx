@@ -14,7 +14,19 @@ export default function HomePage() {
       .catch((err) => console.error("Failed to load products:", err));
   }, []);
 
-  const bestSellers = products.filter((p) => p.is_best_seller).slice(0, 3);
+  // 🔽 always compute from latest products:
+  //    - only is_best_seller
+  //    - in-stock items first
+  //    - limit to 3 cards
+  const bestSellers = [...products]
+    .filter((p) => p.is_best_seller)
+    .sort((a, b) => {
+      const aOut = !a.stock || a.stock === 0;
+      const bOut = !b.stock || b.stock === 0;
+      if (aOut === bOut) return 0;
+      return aOut ? 1 : -1; // out-of-stock goes below in-stock
+    })
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-choSand text-choForest">
@@ -73,10 +85,37 @@ export default function HomePage() {
             {bestSellers.map((p) => (
               <article
                 key={p.id}
-                className="bg-[#f7f3e6] rounded-2xl overflow-hidden shadow-sm flex flex-col hover:-translate-y-1 hover:shadow-md transition"
+                className={`relative bg-[#f7f3e6] rounded-2xl overflow-hidden shadow-sm flex flex-col transition
+                  ${
+                    p.stock === 0
+                      ? "opacity-50"
+                      : "hover:-translate-y-1 hover:shadow-md"
+                  }`}
               >
-                {/* image placeholder – swap to <img src={p.image_url} /> later */}
-                <div className="h-44 bg-gradient-to-tr from-choForest/20 via-choClay/10 to-choSand/40" />
+                {/* BEST SELLER BADGE */}
+                <span className="absolute top-3 left-3 bg-amber-600 text-white text-[0.7rem] px-2 py-1 rounded-full">
+                  Best seller
+                </span>
+
+                {/* OUT OF STOCK BADGE */}
+                {p.stock === 0 && (
+                  <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                    Out of stock
+                  </span>
+                )}
+
+                {/* PRODUCT IMAGE */}
+                <div className="h-44 bg-choForest/10 overflow-hidden">
+                  {p.image_url ? (
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-tr from-choForest/20 via-choClay/10 to-choSand/40" />
+                  )}
+                </div>
 
                 <div className="p-5 flex-1 flex flex-col">
                   <h3 className="font-heading text-xl mb-1 leading-snug">
@@ -85,19 +124,33 @@ export default function HomePage() {
                   <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                     {p.description}
                   </p>
-                  <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-4">
+                  <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-2">
                     {p.mood} • {p.size}
                   </p>
+
+                  {typeof p.stock === "number" && (
+                    <p className="text-[0.7rem] text-gray-500 mb-4">
+                      {p.stock === 0 ? "Not available" : `In stock: ${p.stock}`}
+                    </p>
+                  )}
 
                   <div className="mt-auto flex items-center justify-between">
                     <span className="font-semibold text-sm">
                       {p.price} THB
                     </span>
                     <button
-                      onClick={() => addItem(p, 1)}
-                      className="text-xs border border-choForest rounded-full px-4 py-1 hover:bg-choForest hover:text-white transition"
+                      onClick={() => {
+                        if (p.stock > 0) addItem(p, 1);
+                      }}
+                      disabled={p.stock === 0}
+                      className={`text-xs border rounded-full px-4 py-1 transition
+                        ${
+                          p.stock === 0
+                            ? "border-gray-300 bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "border-choForest hover:bg-choForest hover:text-white"
+                        }`}
                     >
-                      Add to cart
+                      {p.stock === 0 ? "Unavailable" : "Add to cart"}
                     </button>
                   </div>
                 </div>
@@ -106,10 +159,21 @@ export default function HomePage() {
 
             {!bestSellers.length && (
               <p className="col-span-full text-sm text-gray-500">
-                No best sellers marked yet — set <code>is_best_seller = true</code>{" "}
-                for some products in Supabase.
+                No best sellers marked yet — set{" "}
+                <code>is_best_seller = true</code> for some products in
+                Supabase.
               </p>
             )}
+          </div>
+
+          {/* View all products button */}
+          <div className="mt-6 flex justify-end">
+            <a
+              href="/products"
+              className="inline-flex items-center justify-center rounded-full border border-choForest px-5 py-2 text-xs md:text-sm hover:bg-choForest hover:text-white transition"
+            >
+              View all products
+            </a>
           </div>
         </div>
       </section>

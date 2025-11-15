@@ -10,16 +10,20 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-/**
- * GET /api/products
- */
+// GET PRODUCTS
 app.get("/api/products", async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from("products")
@@ -31,15 +35,11 @@ app.get("/api/products", async (req, res) => {
   res.json(data);
 });
 
-/**
- * POST /api/create-checkout-session
- * body: { items: [{ productId, quantity }], user: { id, email, fullName, address... } }
- */
+// CREATE CHECKOUT SESSION
 app.post("/api/create-checkout-session", async (req, res) => {
   try {
     const { items, user } = req.body;
 
-    // Fetch product rows for these IDs
     const ids = items.map((i) => i.productId);
     const { data: products, error } = await supabaseAdmin
       .from("products")
@@ -49,14 +49,13 @@ app.post("/api/create-checkout-session", async (req, res) => {
     if (error) throw error;
 
     const lineItems = items.map((item) => {
-      const product = products.find((p) => p.id === item.productId);
+      const p = products.find((x) => x.id === item.productId);
+
       return {
         price_data: {
           currency: "thb",
-          product_data: {
-            name: product.name,
-          },
-          unit_amount: product.price * 100, // if price is in THB, convert to satang
+          product_data: { name: p.name },
+          unit_amount: p.price * 100,
         },
         quantity: item.quantity,
       };
@@ -68,14 +67,6 @@ app.post("/api/create-checkout-session", async (req, res) => {
       line_items: lineItems,
       success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cart`,
-      metadata: {
-        user_id: user.id || "",
-        email: user.email,
-        full_name: user.fullName,
-        address_line1: user.address_line1,
-        city: user.city,
-        postal_code: user.postal_code,
-      },
     });
 
     res.json({ url: session.url });
@@ -85,10 +76,7 @@ app.post("/api/create-checkout-session", async (req, res) => {
   }
 });
 
-/**
- * POST /api/confirm-order
- * body: { sessionId, items, user }
- */
+// CONFIRM ORDER
 app.post("/api/confirm-order", async (req, res) => {
   try {
     const { sessionId, items, user } = req.body;
@@ -98,7 +86,7 @@ app.post("/api/confirm-order", async (req, res) => {
       return res.status(400).json({ error: "Payment not completed" });
     }
 
-    // Calculate total
+    // Fetch products again
     const ids = items.map((i) => i.productId);
     const { data: products } = await supabaseAdmin
       .from("products")
@@ -107,7 +95,7 @@ app.post("/api/confirm-order", async (req, res) => {
 
     let total = 0;
     items.forEach((item) => {
-      const p = products.find((pr) => pr.id === item.productId);
+      const p = products.find((x) => x.id === item.productId);
       total += p.price * item.quantity;
     });
 
@@ -115,8 +103,8 @@ app.post("/api/confirm-order", async (req, res) => {
     const { data: orderData, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
-        user_id: user.id || null,
-        email: session.customer_details.email,
+        user_id: user.id,
+        email: user.email,
         full_name: user.fullName,
         address_line1: user.address_line1,
         city: user.city,
@@ -135,12 +123,13 @@ app.post("/api/confirm-order", async (req, res) => {
 
     const orderId = orderData.id;
 
-    // Insert order items
+    // Insert order items WITH product_name only
     const orderItems = items.map((item) => {
-      const p = products.find((pr) => pr.id === item.productId);
+      const p = products.find((x) => x.id === item.productId);
       return {
         order_id: orderId,
         product_id: p.id,
+        product_name: p.name, // ← IMPORTANT
         quantity: item.quantity,
         unit_price: p.price,
       };

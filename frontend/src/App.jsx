@@ -28,6 +28,8 @@ import AdminOrdersPage from "./pages/AdminOrdersPage";
 
 import AdminNotificationsPage from "./pages/AdminNotificationsPage";
 
+import OrderIssueFormPage from "./pages/OrderIssueFormPage";
+import RefundFormPage from "./pages/RefundFormPage";
 
 
 function AdminRoute({ children }) {
@@ -79,8 +81,10 @@ export default function App() {
               <Route path="/admin/products" element={<AdminRoute> <AdminProductsPage /></AdminRoute>}/>
               <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>}/>
               <Route path="/admin/notifications" element={<AdminRoute><AdminNotificationsPage /></AdminRoute>}/>
+              <Route path="/orders/:orderId/issue" element={<OrderIssueFormPage />} />
+              <Route path="/orders/:orderId/refund" element={<RefundFormPage />} />
 
-              {/* ⭐⭐ NEW ROUTE ⭐⭐ */}
+              
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </div>

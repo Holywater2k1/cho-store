@@ -17,6 +17,7 @@ export default function AdminProductsPage() {
     image_url: "",
   });
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");   // 👈 NEW
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -56,6 +57,7 @@ export default function AdminProductsPage() {
       image_url: "",
     });
     setImageFile(null);
+    setImagePreview("");           // 👈 reset preview
     setEditingId(null);
   };
 
@@ -79,6 +81,17 @@ export default function AdminProductsPage() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
       setForm((f) => ({ ...f, slug }));
+    }
+  };
+
+  // 👇 NEW: handle image input + preview
+  const handleImageInput = (e) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImagePreview("");
     }
   };
 
@@ -166,6 +179,7 @@ export default function AdminProductsPage() {
       image_url: product.image_url || "",
     });
     setImageFile(null);
+    setImagePreview(product.image_url || "");   // 👈 show current image
     setMessage("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -198,13 +212,40 @@ export default function AdminProductsPage() {
     }
   };
 
+  // 📦 total stats
+  const totalProducts = products.length;
+  const totalStock = products.reduce(
+    (sum, p) => sum + (p.stock ?? 0),
+    0
+  );
+
   return (
     <main className="min-h-screen bg-choSand">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <h1 className="font-heading text-3xl mb-2">Admin · Products</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Add, edit, remove candles and control stock from here.
-        </p>
+        {/* HEADER + STATS */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="font-heading text-3xl mb-1">Admin · Products</h1>
+            <p className="text-sm text-gray-600">
+              Add, edit, remove candles and control stock from here.
+            </p>
+          </div>
+
+          <div className="flex gap-4 text-sm">
+            <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
+              <p className="text-[0.7rem] text-gray-500 uppercase tracking-[0.18em]">
+                Total products
+              </p>
+              <p className="font-heading text-xl">{totalProducts}</p>
+            </div>
+            <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
+              <p className="text-[0.7rem] text-gray-500 uppercase tracking-[0.18em]">
+                Total units in stock
+              </p>
+              <p className="font-heading text-xl">{totalStock}</p>
+            </div>
+          </div>
+        </div>
 
         {message && (
           <p className="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
@@ -370,16 +411,23 @@ export default function AdminProductsPage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                onChange={handleImageInput}
                 className="w-full text-sm"
               />
-              {form.image_url && !imageFile && (
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="mt-2 h-20 w-20 rounded-lg object-cover"
+                />
+              )}
+              {form.image_url && !imageFile && !imagePreview && (
                 <p className="text-[0.65rem] text-gray-500 mt-1">
                   Current image will stay unless you upload a new one.
                 </p>
               )}
               <p className="text-[0.65rem] text-gray-500">
-                Upload to <code>{BUCKET}</code> bucket automatically.
+                Uploads to the <code>{BUCKET}</code> bucket automatically.
               </p>
             </div>
 

@@ -13,6 +13,14 @@ export default function ProductsPage() {
       .then((data) => setProducts(data));
   }, []);
 
+  // 🔽 sort: available products first, then out-of-stock
+  const sortedProducts = [...products].sort((a, b) => {
+    const aOut = !a.stock || a.stock === 0;
+    const bOut = !b.stock || b.stock === 0;
+    if (aOut === bOut) return 0;      // both same availability → keep original order
+    return aOut ? 1 : -1;             // out-of-stock goes after in-stock
+  });
+
   return (
     <main className="min-h-screen bg-choSand">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -32,7 +40,7 @@ export default function ProductsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {products.map((p) => (
+          {sortedProducts.map((p) => (
             <article
               key={p.id}
               className={`relative bg-[#f7f3e6] rounded-2xl p-5 shadow-sm flex flex-col transition
@@ -42,6 +50,13 @@ export default function ProductsPage() {
                     : "hover:-translate-y-1 hover:shadow-md"
                 }`}
             >
+              {/* BEST SELLER BADGE */}
+              {p.is_best_seller && (
+                <span className="absolute top-3 left-3 bg-amber-600 text-white text-[0.7rem] px-2 py-1 rounded-full">
+                  Best seller
+                </span>
+              )}
+
               {/* OUT OF STOCK BADGE */}
               {p.stock === 0 && (
                 <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
@@ -49,8 +64,18 @@ export default function ProductsPage() {
                 </span>
               )}
 
-              {/* image placeholder (you can replace this with real img) */}
-              <div className="h-40 bg-choForest/15 mb-3 rounded-xl" />
+              {/* PRODUCT IMAGE */}
+              <div className="h-40 mb-3 rounded-xl overflow-hidden bg-choForest/10">
+                {p.image_url ? (
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-choForest/15" />
+                )}
+              </div>
 
               <h2 className="font-heading text-xl mb-1">{p.name}</h2>
               <p className="text-sm text-gray-700 mb-2 line-clamp-2">
@@ -60,7 +85,7 @@ export default function ProductsPage() {
                 {p.mood} • {p.size}
               </p>
 
-              {/* optional: show stock count if you like */}
+              {/* stock information */}
               {typeof p.stock === "number" && (
                 <p className="text-[0.7rem] text-gray-500 mb-4">
                   {p.stock === 0 ? "Not available" : `In stock: ${p.stock}`}
