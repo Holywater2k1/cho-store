@@ -1,3 +1,4 @@
+// src/pages/AdminProductsPage.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -17,14 +18,20 @@ export default function AdminProductsPage() {
     image_url: "",
   });
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");   // 👈 NEW
+  const [imagePreview, setImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null); // null = adding, not editing
+  const [editingId, setEditingId] = useState(null); // null = adding
 
   const moods = ["Calm", "Focus", "Dream"];
   const sizes = ["180g tin", "200g glass jar", "250g matte jar"];
+
+  // filters
+  const [moodFilter, setMoodFilter] = useState("all");
+  const [sizeFilter, setSizeFilter] = useState("all");
+  const [stockFilter, setStockFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     loadProducts();
@@ -57,7 +64,7 @@ export default function AdminProductsPage() {
       image_url: "",
     });
     setImageFile(null);
-    setImagePreview("");           // 👈 reset preview
+    setImagePreview("");
     setEditingId(null);
   };
 
@@ -84,7 +91,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  // 👇 NEW: handle image input + preview
   const handleImageInput = (e) => {
     const file = e.target.files?.[0] || null;
     setImageFile(file);
@@ -104,7 +110,6 @@ export default function AdminProductsPage() {
     try {
       let image_url = form.image_url || null;
 
-      // If a new image is chosen, upload and override
       if (imageFile) {
         const ext = imageFile.name.split(".").pop();
         const filePath = `admin-${Date.now()}-${Math.random()
@@ -137,7 +142,6 @@ export default function AdminProductsPage() {
       };
 
       if (editingId) {
-        // UPDATE
         const { error: updateError } = await supabase
           .from("products")
           .update(payload)
@@ -146,7 +150,6 @@ export default function AdminProductsPage() {
         if (updateError) throw updateError;
         setMessage("Product updated successfully.");
       } else {
-        // INSERT
         const { error: insertError } = await supabase
           .from("products")
           .insert(payload);
@@ -179,7 +182,7 @@ export default function AdminProductsPage() {
       image_url: product.image_url || "",
     });
     setImageFile(null);
-    setImagePreview(product.image_url || "");   // 👈 show current image
+    setImagePreview(product.image_url || "");
     setMessage("");
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -212,110 +215,134 @@ export default function AdminProductsPage() {
     }
   };
 
-  // 📦 total stats
   const totalProducts = products.length;
   const totalStock = products.reduce(
     (sum, p) => sum + (p.stock ?? 0),
     0
   );
 
+  const filteredProducts = products.filter((p) => {
+    if (moodFilter !== "all" && p.mood !== moodFilter) return false;
+    if (sizeFilter !== "all" && p.size !== sizeFilter) return false;
+    if (stockFilter === "in" && (!p.stock || p.stock <= 0)) return false;
+    if (stockFilter === "out" && (p.stock || 0) > 0) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const text = `${p.name} ${p.slug} ${p.mood} ${p.size} ${p.description || ""}`.toLowerCase();
+      if (!text.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <main className="min-h-screen bg-choSand">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="page-shell py-8 space-y-6">
         {/* HEADER + STATS */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="font-heading text-3xl mb-1">Admin · Products</h1>
-            <p className="text-sm text-gray-600">
-              Add, edit, remove candles and control stock from here.
-            </p>
+        <div className="page-section">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
+            <div>
+              <p className="text-[0.7rem] uppercase tracking-[0.25em] text-choForest/60 mb-1">
+                Admin
+              </p>
+              <h1 className="font-heading text-2xl sm:text-3xl mb-1">
+                Products
+              </h1>
+              <p className="text-xs sm:text-sm text-choForest/70">
+                Add, edit, remove candles and control stock from here.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-[#f7f3e6] rounded-2xl px-4 py-3 border border-black/5">
+                <p className="text-[0.7rem] text-choForest/60 uppercase tracking-[0.18em] mb-1">
+                  Total products
+                </p>
+                <p className="font-heading text-xl">{totalProducts}</p>
+              </div>
+              <div className="bg-[#f7f3e6] rounded-2xl px-4 py-3 border border-black/5">
+                <p className="text-[0.7rem] text-choForest/60 uppercase tracking-[0.18em] mb-1">
+                  Total units in stock
+                </p>
+                <p className="font-heading text-xl">{totalStock}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-4 text-sm">
-            <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
-              <p className="text-[0.7rem] text-gray-500 uppercase tracking-[0.18em]">
-                Total products
-              </p>
-              <p className="font-heading text-xl">{totalProducts}</p>
-            </div>
-            <div className="bg-white rounded-xl px-4 py-3 shadow-sm">
-              <p className="text-[0.7rem] text-gray-500 uppercase tracking-[0.18em]">
-                Total units in stock
-              </p>
-              <p className="font-heading text-xl">{totalStock}</p>
-            </div>
-          </div>
+          {message && (
+            <p className="mb-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+              {message}
+            </p>
+          )}
+          {error && (
+            <p className="mb-2 text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+              {error}
+            </p>
+          )}
         </div>
 
-        {message && (
-          <p className="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-            {message}
-          </p>
-        )}
-        {error && (
-          <p className="mb-3 text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
-
         {/* FORM */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-xl">
+        <section className="page-section">
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <h2 className="font-heading text-lg sm:text-xl">
               {editingId ? "Edit product" : "Add a new product"}
             </h2>
             {editingId && (
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-[0.7rem] uppercase tracking-[0.15em] text-gray-600 hover:text-choForest"
+                className="btn-ghost text-[0.7rem] uppercase tracking-[0.15em]"
               >
                 + New product
               </button>
             )}
           </div>
 
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+          <form
+            className="grid gap-4 md:grid-cols-2"
+            onSubmit={handleSubmit}
+          >
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="name">
                 Name
               </label>
               <input
+                id="name"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 onBlur={handleNameBlur}
                 required
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="slug">
                 Slug
               </label>
               <input
+                id="slug"
                 name="slug"
                 value={form.slug}
                 onChange={handleChange}
                 required
-                className="w-full border rounded px-3 py-2 text-sm"
-                placeholder="auto-generated from name"
+                className="input-field"
               />
-              <p className="text-[0.65rem] text-gray-500 mt-1">
-                Used in URLs, must be unique (e.g. <code>midnight-library</code>).
+              <p className="mt-1 text-[0.7rem] text-choForest/60">
+                Used in URLs. Auto-filled from name if left empty.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="mood">
                 Mood
               </label>
               <select
+                id="mood"
                 name="mood"
                 value={form.mood}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               >
                 {moods.map((m) => (
                   <option key={m} value={m}>
@@ -326,14 +353,15 @@ export default function AdminProductsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
-                Size
+              <label className="field-label" htmlFor="size">
+                Size / vessel
               </label>
               <select
+                id="size"
                 name="size"
                 value={form.size}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               >
                 {sizes.map((s) => (
                   <option key={s} value={s}>
@@ -344,160 +372,232 @@ export default function AdminProductsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="price">
                 Price (THB)
               </label>
               <input
+                id="price"
                 type="number"
                 name="price"
                 value={form.price}
                 onChange={handleChange}
                 required
-                min={0}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
-                Stock / quantity
+              <label className="field-label" htmlFor="stock">
+                Stock
               </label>
               <input
+                id="stock"
                 type="number"
                 name="stock"
                 value={form.stock}
                 onChange={handleChange}
                 required
-                min={0}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               />
             </div>
 
-            <div className="flex items-center gap-2 mt-6">
+            <div className="md:col-span-2 flex items-center gap-2 mt-3">
               <input
                 id="is_best_seller"
                 type="checkbox"
                 name="is_best_seller"
                 checked={form.is_best_seller}
                 onChange={handleChange}
-                className="w-4 h-4"
+                className="w-4 h-4 rounded border border-black/20"
               />
               <label
                 htmlFor="is_best_seller"
-                className="text-xs text-gray-700"
+                className="text-xs text-choForest/80"
               >
                 Mark as best seller
               </label>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="description">
                 Description
               </label>
               <textarea
+                id="description"
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 required
                 rows={3}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field min-h-[100px] resize-y"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="image">
                 Product image
               </label>
               <input
+                id="image"
                 type="file"
                 accept="image/*"
                 onChange={handleImageInput}
-                className="w-full text-sm"
+                className="block w-full text-xs text-choForest/80"
               />
               {imagePreview && (
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="mt-2 h-20 w-20 rounded-lg object-cover"
+                  className="mt-2 h-20 w-20 rounded-xl object-cover border border-black/10"
                 />
               )}
               {form.image_url && !imageFile && !imagePreview && (
-                <p className="text-[0.65rem] text-gray-500 mt-1">
+                <p className="text-[0.65rem] text-choForest/60 mt-1">
                   Current image will stay unless you upload a new one.
                 </p>
               )}
-              <p className="text-[0.65rem] text-gray-500">
-                Uploads to the <code>{BUCKET}</code> bucket automatically.
-              </p>
             </div>
 
-            <div className="md:col-span-2 pt-2">
+            <div className="md:col-span-2 flex justify-end">
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-full bg-choForest text-white px-6 py-2 text-sm disabled:opacity-60"
+                className="btn-primary text-sm"
               >
                 {saving
                   ? "Saving..."
                   : editingId
-                  ? "Update product"
+                  ? "Save changes"
                   : "Add product"}
               </button>
             </div>
           </form>
         </section>
 
-        {/* LIST */}
-        <section>
-          <h2 className="font-heading text-xl mb-3">Existing products</h2>
+        {/* PRODUCTS LIST */}
+        <section className="page-section">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-heading text-lg sm:text-xl">
+                All products
+              </h2>
+              <p className="text-[0.7rem] text-choForest/60">
+                Click edit to modify details or delete to remove from store.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              <select
+                value={moodFilter}
+                onChange={(e) => setMoodFilter(e.target.value)}
+                className="input-field max-w-[130px] py-1.5 text-xs"
+              >
+                <option value="all">All moods</option>
+                {moods.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={sizeFilter}
+                onChange={(e) => setSizeFilter(e.target.value)}
+                className="input-field max-w-[150px] py-1.5 text-xs"
+              >
+                <option value="all">All sizes</option>
+                {sizes.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={stockFilter}
+                onChange={(e) => setStockFilter(e.target.value)}
+                className="input-field max-w-[150px] py-1.5 text-xs"
+              >
+                <option value="all">All stock</option>
+                <option value="in">In stock</option>
+                <option value="out">Out of stock</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Search name, slug..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="input-field max-w-xs py-1.5 text-xs"
+              />
+            </div>
+          </div>
+
           <div className="space-y-3">
-            {products.map((p) => (
+            {!products.length && (
+              <p className="text-xs text-choForest/60">
+                No products yet. Add your first candle above.
+              </p>
+            )}
+
+            {filteredProducts.map((p) => (
               <article
                 key={p.id}
-                className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between gap-4"
+                className="bg-[#f7f3e6] rounded-2xl px-4 py-3 border border-black/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
               >
-                <div className="flex items-center gap-3">
-                  {p.image_url && (
+                <div className="flex items-start gap-3">
+                  {p.image_url ? (
                     <img
                       src={p.image_url}
                       alt={p.name}
-                      className="w-12 h-12 rounded-lg object-cover"
+                      className="h-14 w-14 rounded-xl object-cover border border-black/10"
                     />
+                  ) : (
+                    <div className="h-14 w-14 rounded-xl bg-white/60 border border-dashed border-black/20 flex items-center justify-center text-[0.6rem] text-choForest/50">
+                      No image
+                    </div>
                   )}
                   <div>
-                    <p className="font-heading text-sm">{p.name}</p>
-                    <p className="text-[0.7rem] text-gray-500">
-                      {p.slug} · {p.mood} · {p.size}
+                    <p className="font-heading text-sm mb-0.5">
+                      {p.name}
                     </p>
-                    <p className="text-[0.7rem] text-gray-500">
-                      Stock: {p.stock ?? 0}
+                    <p className="text-[0.7rem] text-choForest/60">
+                      {p.mood} · {p.size}
+                      {p.is_best_seller && " · Best seller"}
                     </p>
-                    {p.is_best_seller && (
-                      <span className="text-[0.65rem] text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-full mt-1">
-                        Best seller
-                      </span>
-                    )}
+                    <p className="text-[0.7rem] text-choForest/60 mt-0.5">
+                      Slug: <span className="font-mono">{p.slug}</span>
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold mr-2">
-                    {p.price} THB
-                  </p>
-                  <button
-                    onClick={() => handleEdit(p)}
-                    className="text-[0.7rem] uppercase tracking-[0.15em] text-choForest hover:text-black"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p)}
-                    className="text-[0.7rem] uppercase tracking-[0.15em] text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
+
+                <div className="flex flex-col items-end gap-1 text-xs">
+                  <div className="flex items-center gap-3">
+                    <p className="text-[0.7rem] text-choForest/70">
+                      Stock:{" "}
+                      <span className="font-semibold">{p.stock}</span>
+                    </p>
+                    <p className="text-sm font-semibold">{p.price} THB</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(p)}
+                      className="btn-ghost text-[0.7rem] uppercase tracking-[0.15em]"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p)}
+                      className="btn-ghost text-[0.7rem] uppercase tracking-[0.15em] text-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}
+
+            {products.length > 0 && !filteredProducts.length && (
+              <p className="text-xs text-choForest/60">
+                No products match these filters.
+              </p>
+            )}
           </div>
         </section>
       </div>

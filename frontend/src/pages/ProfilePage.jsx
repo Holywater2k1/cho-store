@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const justSignedUp = location.state?.justSignedUp;
 
   const [form, setForm] = useState({
     username: "",
@@ -142,9 +144,21 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-choSand">
       <div className="max-w-xl mx-auto px-4 py-12">
         <h1 className="font-heading text-3xl mb-2">Your profile</h1>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-gray-600 mb-4">
           We use these details for your orders and delivery.
         </p>
+
+        {/* 🔔 Special banner when user just signed up */}
+        {justSignedUp && (
+          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-xs sm:text-sm text-emerald-900">
+            <p className="font-semibold mb-1">Welcome to Cho ✨</p>
+            <p>
+              Before you start shopping, please complete your profile
+              details below. This helps us ship your candles to the right
+              place and send you order updates.
+            </p>
+          </div>
+        )}
 
         {info && (
           <p className="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
@@ -163,7 +177,10 @@ export default function ProfilePage() {
           </p>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4 bg-white rounded-xl p-6 shadow-sm">
+        <form
+          onSubmit={handleSave}
+          className="space-y-4 bg-white rounded-xl p-6 shadow-sm"
+        >
           <div>
             <label className="block text-xs font-semibold mb-1">
               Email

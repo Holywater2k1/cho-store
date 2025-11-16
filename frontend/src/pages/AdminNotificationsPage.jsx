@@ -1,3 +1,4 @@
+// src/pages/AdminNotificationsPage.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -12,6 +13,10 @@ export default function AdminNotificationsPage() {
   const [error, setError] = useState("");
   const [notifications, setNotifications] = useState([]);
 
+  // filters
+  const [filterType, setFilterType] = useState("all");
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
     loadNotifications();
   }, []);
@@ -21,7 +26,7 @@ export default function AdminNotificationsPage() {
       .from("notifications")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (!error) setNotifications(data || []);
   };
@@ -59,38 +64,87 @@ export default function AdminNotificationsPage() {
     }
   };
 
+  const handleDelete = async (notif) => {
+    const ok = window.confirm(
+      `Delete notification "${notif.title}"? This cannot be undone.`
+    );
+    if (!ok) return;
+
+    setSending(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", notif.id);
+
+      if (error) throw error;
+
+      setMessage("Notification deleted.");
+      await loadNotifications();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to delete notification.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (filterType !== "all" && n.type !== filterType) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const text = `${n.title || ""} ${n.body || ""} ${n.type || ""}`.toLowerCase();
+      if (!text.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <main className="min-h-screen bg-choSand">
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <h1 className="font-heading text-3xl mb-2">Admin · Notifications</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Send offers, discounts and updates to all Cho users.
-        </p>
+      <div className="page-shell py-8 space-y-6">
+        {/* HEADER */}
+        <div className="page-section">
+          <p className="text-[0.7rem] uppercase tracking-[0.25em] text-choForest/60 mb-1">
+            Admin
+          </p>
+          <h1 className="font-heading text-2xl sm:text-3xl mb-1">
+            Notifications
+          </h1>
+          <p className="text-xs sm:text-sm text-choForest/70 mb-3">
+            Send offers, discounts and updates to all Cho users.
+          </p>
 
-        {message && (
-          <p className="mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-            {message}
-          </p>
-        )}
-        {error && (
-          <p className="mb-3 text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
+          {message && (
+            <p className="mb-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+              {message}
+            </p>
+          )}
+          {error && (
+            <p className="mb-2 text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+              {error}
+            </p>
+          )}
+        </div>
 
         {/* FORM */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm mb-10">
-          <h2 className="font-heading text-xl mb-4">Send notification</h2>
+        <section className="page-section">
+          <h2 className="font-heading text-lg sm:text-xl mb-4">
+            Send notification
+          </h2>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="type">
                 Type
               </label>
               <select
+                id="type"
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field"
               >
                 <option value="promo">Promo / discount</option>
                 <option value="info">Info update</option>
@@ -99,30 +153,32 @@ export default function AdminNotificationsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="title">
                 Title
               </label>
               <input
+                id="title"
                 name="title"
                 value={form.title}
                 onChange={handleChange}
                 required
-                className="w-full border rounded px-3 py-2 text-sm"
-                placeholder="Example: 10% off new arrivals"
+                className="input-field"
+                placeholder="Notification title"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="field-label" htmlFor="body">
                 Message
               </label>
               <textarea
+                id="body"
                 name="body"
                 value={form.body}
                 onChange={handleChange}
                 required
                 rows={3}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="input-field min-h-[100px] resize-y"
                 placeholder="Short description of the offer or update."
               />
             </div>
@@ -130,7 +186,7 @@ export default function AdminNotificationsPage() {
             <button
               type="submit"
               disabled={sending}
-              className="rounded-full bg-choForest text-white px-6 py-2 text-sm disabled:opacity-60"
+              className="btn-primary text-sm"
             >
               {sending ? "Sending..." : "Send to all users"}
             </button>
@@ -138,24 +194,58 @@ export default function AdminNotificationsPage() {
         </section>
 
         {/* RECENT NOTIFICATIONS */}
-        <section>
-          <h2 className="font-heading text-xl mb-3">Recent notifications</h2>
+        <section className="page-section">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <h2 className="font-heading text-lg sm:text-xl">
+              Recent notifications
+            </h2>
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="input-field max-w-[150px] py-1.5 text-xs"
+              >
+                <option value="all">All types</option>
+                <option value="promo">Promo</option>
+                <option value="info">Info</option>
+                <option value="system">System</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Search title or message..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="input-field max-w-xs py-1.5 text-xs"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            {notifications.map((n) => (
+            {filteredNotifications.map((n) => (
               <article
                 key={n.id}
-                className="bg-white rounded-xl p-4 shadow-sm text-sm"
+                className="bg-[#f7f3e6] rounded-2xl p-4 border border-black/5 text-sm flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
               >
-                <p className="text-[0.7rem] text-gray-500 mb-1">
-                  {new Date(n.created_at).toLocaleString()} · {n.type}
-                </p>
-                <p className="font-heading text-sm mb-1">{n.title}</p>
-                <p className="text-xs text-gray-700">{n.body}</p>
+                <div className="flex-1">
+                  <p className="text-[0.7rem] text-choForest/60 mb-1">
+                    {new Date(n.created_at).toLocaleString()} · {n.type}
+                  </p>
+                  <p className="font-heading text-sm mb-1">{n.title}</p>
+                  <p className="text-xs text-choForest/80">{n.body}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(n)}
+                  className="btn-ghost text-[0.7rem] text-red-600 self-start"
+                  disabled={sending}
+                >
+                  Delete
+                </button>
               </article>
             ))}
-            {!notifications.length && (
-              <p className="text-xs text-gray-600">
-                No notifications yet.
+            {!filteredNotifications.length && (
+              <p className="text-xs text-choForest/60">
+                No notifications match these filters.
               </p>
             )}
           </div>

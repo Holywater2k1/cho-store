@@ -22,14 +22,14 @@ export default function CheckoutPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // if not logged in, go to auth
+  // If not logged in once auth is done → send to login
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth", { state: { from: "/checkout" } });
     }
   }, [user, loading, navigate]);
 
-  // preload profile data if available
+  // Preload profile data if available
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
@@ -87,12 +87,13 @@ export default function CheckoutPage() {
 
       if (orderError) throw orderError;
 
-      // 2) create order_items
+      // 2) create order_items rows
       const itemsToInsert = items.map((item) => ({
         order_id: order.id,
         product_id: item.productId,
         quantity: item.quantity,
         unit_price: item.price,
+        line_total: item.price * item.quantity,
       }));
 
       const { error: itemsError } = await supabase
@@ -111,16 +112,17 @@ export default function CheckoutPage() {
     }
   };
 
+  // If cart is empty, reuse a nice empty state
   if (!items.length) {
     return (
-      <main className="min-h-screen bg-choSand flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 mb-4">
+      <main className="min-h-screen bg-choSand flex items-center justify-center px-4">
+        <div className="glass-card px-6 py-7 max-w-sm w-full text-center">
+          <p className="text-sm text-choForest/75 mb-3">
             Your cart is empty.
           </p>
           <button
             onClick={() => navigate("/products")}
-            className="rounded-full bg-choForest text-white px-6 py-2 text-sm"
+            className="btn-primary w-full text-sm"
           >
             Browse candles
           </button>
@@ -131,144 +133,188 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-choSand">
-      <div className="max-w-5xl mx-auto px-4 py-12 grid gap-10 md:grid-cols-[3fr,2fr]">
-        {/* DELIVERY FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl p-6 shadow-sm space-y-4"
-        >
-          <h1 className="font-heading text-2xl mb-2">Delivery details</h1>
-          <p className="text-xs text-gray-600 mb-4">
-            We’ll use this information to deliver your order.
+      <div className="page-shell py-8 sm:py-10">
+        <div className="mb-6">
+          <p className="text-[0.7rem] uppercase tracking-[0.25em] text-choForest/60">
+            Checkout
           </p>
+          <h1 className="font-heading text-2xl sm:text-3xl mt-1 mb-1.5">
+            Delivery & payment
+          </h1>
+          <p className="text-sm text-choForest/75">
+            We&apos;ll use these details to deliver your Cho candles safely.
+          </p>
+        </div>
 
-          {error && (
-            <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.7fr),minmax(0,1fr)] items-start">
+          {/* Left: Checkout form */}
+          <section className="page-section">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                  {error}
+                </p>
+              )}
 
-          <div>
-            <label className="block text-xs font-semibold mb-1">
-              Full name
-            </label>
-            <input
-              name="full_name"
-              value={form.full_name}
-              onChange={handleChange}
-              required
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-          </div>
+              {/* Contact */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="field-label" htmlFor="full_name">
+                    Full name
+                  </label>
+                  <input
+                    id="full_name"
+                    name="full_name"
+                    value={form.full_name}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="phone">
+                    Phone number
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                    placeholder="08X-XXX-XXXX"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1">
-              Phone number
-            </label>
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              required
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-          </div>
+              {/* Address */}
+              <div>
+                <label className="field-label" htmlFor="address_line1">
+                  Address
+                </label>
+                <input
+                  id="address_line1"
+                  name="address_line1"
+                  value={form.address_line1}
+                  onChange={handleChange}
+                  required
+                  className="input-field"
+                  placeholder="House number, street, building"
+                />
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1">
-              Address
-            </label>
-            <input
-              name="address_line1"
-              value={form.address_line1}
-              onChange={handleChange}
-              required
-              className="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Street, building, house number"
-            />
-          </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="field-label" htmlFor="city">
+                    City / District
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="province">
+                    Province
+                  </label>
+                  <input
+                    id="province"
+                    name="province"
+                    value={form.province}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="postal_code">
+                    Postal code
+                  </label>
+                  <input
+                    id="postal_code"
+                    name="postal_code"
+                    value={form.postal_code}
+                    onChange={handleChange}
+                    required
+                    className="input-field"
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Payment */}
+              <div>
+                <label className="field-label" htmlFor="payment_method">
+                  Payment method
+                </label>
+                <select
+                  id="payment_method"
+                  name="payment_method"
+                  value={form.payment_method}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="cod">Cash on delivery</option>
+                  <option value="bank_transfer">Bank transfer</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-primary w-full mt-2"
+              >
+                {saving ? "Placing your order..." : "Place order"}
+              </button>
+            </form>
+          </section>
+
+          {/* Right: Order summary */}
+          <aside className="page-section h-max space-y-4">
             <div>
-              <label className="block text-xs font-semibold mb-1">
-                City
-              </label>
-              <input
-                name="city"
-                value={form.city}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2 text-sm"
-              />
+              <h2 className="font-heading text-lg mb-1.5">
+                Order summary
+              </h2>
+              <p className="text-xs text-choForest/65">
+                Review your items before confirming.
+              </p>
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Province
-              </label>
-              <input
-                name="province"
-                value={form.province}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2 text-sm"
-              />
+
+            <ul className="space-y-2 text-sm">
+              {items.map((item) => (
+                <li
+                  key={item.productId}
+                  className="flex justify-between text-choForest/85"
+                >
+                  <span className="max-w-[60%]">
+                    {item.name} &times; {item.quantity}
+                  </span>
+                  <span>{item.price * item.quantity} THB</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="border-t border-black/10 pt-3 space-y-1 text-sm">
+              <div className="flex justify-between text-choForest/75">
+                <span>Items total</span>
+                <span>{total} THB</span>
+              </div>
+              <div className="flex justify-between text-choForest/60">
+                <span>Estimated shipping</span>
+                <span>Calculated after address</span>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Postal code
-              </label>
-              <input
-                name="postal_code"
-                value={form.postal_code}
-                onChange={handleChange}
-                required
-                className="w-full border rounded px-3 py-2 text-sm"
-              />
+
+            <div className="border-t border-black/10 pt-3 flex justify-between text-sm font-semibold">
+              <span>Total</span>
+              <span>{total} THB</span>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold mb-1">
-              Payment method
-            </label>
-            <select
-              name="payment_method"
-              value={form.payment_method}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 text-sm"
-            >
-              <option value="cod">Cash on delivery</option>
-              <option value="bank_transfer">Bank transfer</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="mt-2 rounded-full bg-choForest text-white px-6 py-2 text-sm disabled:opacity-60"
-          >
-            {saving ? "Placing order..." : "Place order"}
-          </button>
-        </form>
-
-        {/* ORDER SUMMARY */}
-        <aside className="bg-[#f7f3e6] rounded-2xl p-6 shadow-sm">
-          <h2 className="font-heading text-xl mb-3">Order summary</h2>
-          <ul className="space-y-3 mb-4 text-sm">
-            {items.map((item) => (
-              <li key={item.productId} className="flex justify-between">
-                <span>
-                  {item.name} &times; {item.quantity}
-                </span>
-                <span>{item.price * item.quantity} THB</span>
-              </li>
-            ))}
-          </ul>
-          <div className="border-t border-black/10 pt-3 flex justify-between text-sm font-semibold">
-            <span>Total</span>
-            <span>{total} THB</span>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </main>
   );

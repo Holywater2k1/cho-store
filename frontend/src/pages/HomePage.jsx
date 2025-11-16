@@ -1,5 +1,8 @@
+// src/pages/HomePage.jsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import ProductCard from "../components/ProductCard";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,294 +17,312 @@ export default function HomePage() {
       .catch((err) => console.error("Failed to load products:", err));
   }, []);
 
-  // 🔽 always compute from latest products:
-  //    - only is_best_seller
-  //    - in-stock items first
-  //    - limit to 3 cards
   const bestSellers = [...products]
     .filter((p) => p.is_best_seller)
     .sort((a, b) => {
       const aOut = !a.stock || a.stock === 0;
       const bOut = !b.stock || b.stock === 0;
       if (aOut === bOut) return 0;
-      return aOut ? 1 : -1; // out-of-stock goes below in-stock
+      return aOut ? 1 : -1;
     })
     .slice(0, 3);
 
-  return (
-    <div className="min-h-screen bg-choSand text-choForest">
-      {/* ================= HERO ================= */}
-      <section
-        id="home"
-        className="relative min-h-[70vh] flex items-center justify-center text-center text-white overflow-hidden"
-      >
-        {/* Background – later you can swap to bg-[url('/hero.jpg')] */}
-        <div className="absolute inset-0 bg-choForest" />
-        <div className="absolute inset-0 bg-black/35" />
+  const handleAddToCart = (product) => {
+    if (!product || product.stock === 0) return;
+    addItem(product, 1);
+  };
 
-        <div className="relative max-w-3xl px-6 pt-8 pb-16">
-          <p className="uppercase tracking-[0.4em] text-[0.65rem] md:text-xs mb-3 text-white/70">
-            IT&apos;S TIME TO
-          </p>
-          <h1 className="font-heading text-4xl md:text-6xl leading-tight mb-4">
-            VISIT CHO
-          </h1>
-          <p className="text-sm md:text-base mb-8 text-gray-100 leading-relaxed">
-            Scented candles crafted to turn your room into a quiet escape.
-            Calm, focus and dream in every flame.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="#bestsellers"
-              className="inline-flex items-center justify-center rounded-full border border-white px-6 py-2 text-xs md:text-sm hover:bg-white hover:text-choForest transition"
-            >
-              Best sellers
-            </a>
-            <a
-              href="/products"
-              className="inline-flex items-center justify-center rounded-full border border-white/60 px-6 py-2 text-xs md:text-sm hover:bg-white/10 transition"
-            >
-              Shop all candles
-            </a>
+  return (
+    <main className="bg-choSand text-choForest">
+      {/* ================= HERO (GREEN VERSION, MODERNIZED) ================= */}
+<section className="relative overflow-hidden border-b border-black/5">
+  {/* Soft green gradient background */}
+  <div className="absolute inset-0 bg-gradient-to-br from-[#0f2622] via-[#12372a] to-[#2b4c3e]" />
+
+  {/* Decorative soft blobs */}
+  <div className="absolute -left-20 top-[-3rem] h-60 w-60 rounded-full bg-emerald-300/20 blur-3xl" />
+  <div className="absolute right-[-3rem] bottom-[-3rem] h-72 w-72 rounded-full bg-teal-300/20 blur-3xl" />
+
+  <div className="relative page-shell py-16 sm:py-20">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr),minmax(0,1fr)] items-center">
+      
+      {/* LEFT CONTENT */}
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 mb-4">
+          <span className="h-2 w-2 rounded-full bg-emerald-300" />
+          <span className="text-[0.7rem] uppercase tracking-[0.22em] text-white/80">
+            Hand-poured in small batches
+          </span>
+        </div>
+
+        <h1 className="font-heading text-4xl sm:text-5xl lg:text-[3.3rem] leading-tight text-white mb-4">
+          Scented candles
+          <span className="block text-amber-200">
+            for slow, cozy evenings.
+          </span>
+        </h1>
+
+        <p className="text-sm sm:text-base text-white/85 max-w-xl leading-relaxed mb-6">
+          Cho candles transform your room into a soft, warm retreat — perfect for studying, journaling, or winding down after a long day.
+        </p>
+
+        <div className="flex flex-wrap gap-3 mb-6">
+          <a href="#bestsellers" className="btn-primary text-xs sm:text-sm">
+            Shop best sellers
+          </a>
+          <Link to="/products" className="btn-outline text-xs sm:text-sm">
+            View all scents
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap gap-4 text-[0.75rem] text-white/75">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+            <span>Clean burning, cotton wicks</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-yellow-300" />
+            <span>Perfect scents for small rooms</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-300" />
+            <span>Ships across Thailand</span>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* RIGHT: PHOTO CARD */}
+      <div className="hidden sm:flex justify-end">
+        <div className="relative w-full max-w-sm">
+          {/* colorful glow */}
+          <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-300/40 via-amber-300/30 to-teal-300/40 blur-3xl opacity-70" />
+
+          <div className="relative rounded-[1.75rem] overflow-hidden bg-[#0a1f1a] border border-white/10 shadow-[0_26px_60px_rgba(0,0,0,0.45)]">
+            <div className="aspect-[4/5] w-full">
+              <img
+                src="/hero-candles.jpg"
+                alt="Cho candles on a cozy desk"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            {/* gradient overlay text */}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-5 pb-5 pt-10">
+              <p className="text-[0.65rem] uppercase tracking-[0.22em] text-white/70 mb-1">
+                Featured scent
+              </p>
+              <h2 className="font-heading text-lg text-white mb-1">
+                Cho Original
+              </h2>
+              <p className="text-xs text-white/80">
+                A warm blend of vanilla, sandalwood and soft citrus — your daily unwind candle.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
       {/* ================= BEST SELLERS ================= */}
-      <section id="bestsellers" className="bg-[#e4deca] py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500">
-            BEST SELLERS
-          </p>
-          <h2 className="font-heading text-3xl md:text-4xl mt-3 mb-3">
-            Loved by the Cho community
-          </h2>
-          <p className="max-w-md text-sm md:text-base text-gray-700 mb-10 leading-relaxed">
-            A curated selection of scents that are always the first to sell out.
-            Perfect for gifting or lighting on a slow evening at home.
-          </p>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {bestSellers.map((p) => (
-              <article
-                key={p.id}
-                className={`relative bg-[#f7f3e6] rounded-2xl overflow-hidden shadow-sm flex flex-col transition
-                  ${
-                    p.stock === 0
-                      ? "opacity-50"
-                      : "hover:-translate-y-1 hover:shadow-md"
-                  }`}
-              >
-                {/* BEST SELLER BADGE */}
-                <span className="absolute top-3 left-3 bg-amber-600 text-white text-[0.7rem] px-2 py-1 rounded-full">
-                  Best seller
-                </span>
-
-                {/* OUT OF STOCK BADGE */}
-                {p.stock === 0 && (
-                  <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                    Out of stock
-                  </span>
-                )}
-
-                {/* PRODUCT IMAGE */}
-                <div className="h-44 bg-choForest/10 overflow-hidden">
-                  {p.image_url ? (
-                    <img
-                      src={p.image_url}
-                      alt={p.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-tr from-choForest/20 via-choClay/10 to-choSand/40" />
-                  )}
-                </div>
-
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="font-heading text-xl mb-1 leading-snug">
-                    {p.name}
-                  </h3>
-                  <p className="text-sm text-gray-700 mb-2 line-clamp-2">
-                    {p.description}
-                  </p>
-                  <p className="text-[0.7rem] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                    {p.mood} • {p.size}
-                  </p>
-
-                  {typeof p.stock === "number" && (
-                    <p className="text-[0.7rem] text-gray-500 mb-4">
-                      {p.stock === 0 ? "Not available" : `In stock: ${p.stock}`}
-                    </p>
-                  )}
-
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="font-semibold text-sm">
-                      {p.price} THB
-                    </span>
-                    <button
-                      onClick={() => {
-                        if (p.stock > 0) addItem(p, 1);
-                      }}
-                      disabled={p.stock === 0}
-                      className={`text-xs border rounded-full px-4 py-1 transition
-                        ${
-                          p.stock === 0
-                            ? "border-gray-300 bg-gray-200 text-gray-500 cursor-not-allowed"
-                            : "border-choForest hover:bg-choForest hover:text-white"
-                        }`}
-                    >
-                      {p.stock === 0 ? "Unavailable" : "Add to cart"}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-
-            {!bestSellers.length && (
-              <p className="col-span-full text-sm text-gray-500">
-                No best sellers marked yet — set{" "}
-                <code>is_best_seller = true</code> for some products in
-                Supabase.
+      <section id="bestsellers" className="page-shell pt-10 pb-12">
+        <div className="page-section">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div>
+              <p className="uppercase tracking-[0.25em] text-[0.7rem] text-choForest/60">
+                Best sellers
               </p>
-            )}
+              <h2 className="font-heading text-2xl sm:text-3xl mt-2 mb-2">
+                Loved by the Cho community
+              </h2>
+              <p className="max-w-md text-sm sm:text-base text-choForest/80 leading-relaxed">
+                Scents that sell out first. Perfect for gifting or setting the
+                mood for your next slow evening.
+              </p>
+            </div>
+            <div className="text-xs sm:text-[0.8rem] text-choForest/60">
+              Free shipping over{" "}
+              <span className="font-semibold">999 THB</span>
+            </div>
           </div>
 
-          {/* View all products button */}
+          {bestSellers.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {bestSellers.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  bestSeller
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-choForest/20 bg-white/70 px-4 py-6 text-sm text-choForest/75">
+              We&apos;re still curating our best sellers.{" "}
+              <Link to="/products" className="underline">
+                View all products
+              </Link>{" "}
+              to explore the full collection.
+            </div>
+          )}
+
           <div className="mt-6 flex justify-end">
-            <a
-              href="/products"
-              className="inline-flex items-center justify-center rounded-full border border-choForest px-5 py-2 text-xs md:text-sm hover:bg-choForest hover:text-white transition"
-            >
+            <Link to="/products" className="btn-ghost text-xs sm:text-sm">
               View all products
-            </a>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ================= MOOD CARDS ================= */}
-      <section className="bg-choSand py-16 px-4">
-        <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-3">
-          <div className="md:col-span-1">
-            <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500 mb-2">
-              MOODS
-            </p>
-            <h2 className="font-heading text-3xl mb-3">
-              Light for how you feel.
-            </h2>
-            <p className="text-sm text-gray-700">
-              Whether you need a quiet reset, deep focus, or a dreamy night,
-              Cho candles are blended to match the moment.
-            </p>
-          </div>
+      {/* ================= STORY (MODERN) ================= */}
+<section className="page-shell pt-10 pb-12">
+  <div className="page-section relative overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-[#f7f1df] via-[#f9f4e8] to-[#f3e6cf] border border-black/5 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+    {/* subtle top gradient line */}
+    <div className="pointer-events-none absolute inset-x-6 top-0 h-[2px] bg-gradient-to-r from-emerald-500/40 via-amber-500/40 to-emerald-500/20 rounded-full" />
 
-          <div className=" md:col-span-2 grid gap-5 md:grid-cols-3">
-            <MoodCard
-              title="Calm"
-              tagline="Soft woods & warm tea"
-              desc="Slow evenings, rainy playlists and long baths."
-            />
-            <MoodCard
-              title="Focus"
-              tagline="Green citrus & herbs"
-              desc="Clean desk, study sessions and deep work."
-            />
-            <MoodCard
-              title="Dream"
-              tagline="Amber & vanilla haze"
-              desc="Late-night journaling and gentle sleep."
-            />
-          </div>
+    <div className="grid gap-8 md:grid-cols-[minmax(0,1.15fr),minmax(0,1fr)] items-start pt-6">
+      {/* LEFT TEXT */}
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 mb-4 border border-black/5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="text-[0.7rem] uppercase tracking-[0.25em] text-choForest/70">
+            The Cho story
+          </span>
         </div>
-      </section>
 
-      {/* ================= STORY SECTION ================= */}
-      <section className="bg-choForest text-choSand py-16 px-4">
-        <div className="max-w-6xl mx-auto grid gap-10 md:grid-cols-2 items-center">
-          {/* Image placeholder */}
-          <div className="h-72 md:h-80 rounded-3xl bg-gradient-to-br from-choSand/10 via-white/5 to-choClay/20 border border-white/10" />
+        <h2 className="font-heading text-2xl sm:text-3xl md:text-[2rem] mb-3 text-choForest">
+          Designed for small rooms, big feelings.
+        </h2>
 
-          <div>
-            <p className="uppercase tracking-[0.25em] text-[0.7rem] text-choSand/70 mb-2">
-              IN LOVE WITH CHO
-            </p>
-            <h2 className="font-heading text-3xl md:text-4xl mb-3">
-              A small studio with a big obsession.
-            </h2>
-            <p className="text-sm md:text-base text-choSand/90 mb-4 leading-relaxed">
-              Cho started as late-night experiments in a tiny Bangkok apartment:
-              mixing wax in old pots, testing scents on friends, burning through
-              notebooks of ideas.
-            </p>
-            <p className="text-sm md:text-base text-choSand/80 leading-relaxed mb-6">
-              Every candle is still poured in small batches, with scents tested
-              for balance between throw and comfort. No harsh additives, no
-              overwhelming perfumes — just quiet, warm light.
-            </p>
-            <a
-              href="/products"
-              className="inline-flex items-center justify-center rounded-full border border-choSand px-6 py-2 text-xs md:text-sm hover:bg-choSand hover:text-choForest transition"
-            >
-              Explore the collection
-            </a>
-          </div>
+        <p className="text-sm sm:text-base text-choForest/80 leading-relaxed mb-4">
+          Cho started as a way to bring a calm, cozy feeling into small city
+          bedrooms. Each scent is tested at different times of day — early
+          morning, late nights, rainy afternoons — to make sure it never feels
+          too heavy.
+        </p>
+        <p className="text-sm text-choForest/75 leading-relaxed">
+          We focus on warm, balanced blends that work well for studying,
+          relaxing, or journaling. Nothing overpowering, just gentle background
+          comfort that makes the room feel a little softer.
+        </p>
+
+        <div className="mt-5 flex flex-wrap gap-3 text-[0.75rem] text-choForest/70">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 border border-black/5">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span>Burn-tested in small rooms</span>
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 border border-black/5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span>Never too strong or heavy</span>
+          </span>
         </div>
-      </section>
+      </div>
 
-      {/* ================= CRAFT / BENEFITS ================= */}
-      <section className="bg-[#e4deca] py-14 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="font-heading text-2xl md:text-3xl mb-8">
-            What makes a Cho candle different?
-          </h2>
-          <div className="grid gap-6 md:grid-cols-3 text-sm text-gray-700">
-            <Feature
-              title="Clean-burning blend"
-              desc="Natural wax blend with cotton wicks for a slow, even burn and less soot."
-            />
-            <Feature
-              title="Thoughtful scent design"
-              desc="Layered top, heart and base notes — cozy but never overpowering."
-            />
-            <Feature
-              title="Made in small batches"
-              desc="Poured by hand in small runs so each batch gets full attention."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ================= FOOTER ================= */}
-      <footer className="bg-choForest text-choSand/80 py-6 px-4 text-xs">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-3">
-          <p>&copy; {new Date().getFullYear()} Cho Candles. All rights reserved.</p>
-          <p className="text-choSand/60">
-            Made with quiet nights, lo-fi playlists and too much wax.
-          </p>
-        </div>
-      </footer>
+      {/* RIGHT STORY CARDS */}
+      <div className="grid gap-4">
+        <StoryCard
+          eyebrow="Soft, non-distracting scents"
+          title="For your study desk"
+          desc="Light a candle that keeps you focused while your playlist and to-do list get the spotlight."
+        />
+        <StoryCard
+          eyebrow="Your small night routine"
+          title="For winding down"
+          desc="Finish your day with a quiet ritual — one match, one flame, a few deep breaths before bed."
+        />
+      </div>
     </div>
+  </div>
+</section>
+
+
+      {/* ================= BENEFITS (MODERN) ================= */}
+<section className="page-shell pb-16">
+  <div className="page-section rounded-[2.2rem] bg-gradient-to-br from-[#faf3e5] via-[#fdf7ec] to-[#f7ebd7] border border-black/5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
+    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+      <div>
+        <p className="text-[0.7rem] uppercase tracking-[0.25em] text-choForest/60 mb-1">
+          Why Cho?
+        </p>
+        <h2 className="font-heading text-2xl sm:text-3xl mb-2 text-choForest">
+          What makes a Cho candle different?
+        </h2>
+        <p className="text-sm sm:text-base text-choForest/80 max-w-xl leading-relaxed">
+          Small details, tested burns, and gentle scents that feel like part of
+          the room — not the whole room&apos;s personality.
+        </p>
+      </div>
+      <div className="text-[0.75rem] text-choForest/65">
+        Poured in small batches • Designed in Thailand
+      </div>
+    </div>
+
+    <div className="grid gap-6 md:grid-cols-3 text-sm text-choForest/80">
+      <Feature
+        icon="🕯️"
+        title="Clean-burning blend"
+        desc="Natural wax blend with cotton wicks for a slow, even burn and less soot — better for you and your walls."
+      />
+      <Feature
+        icon="🏡"
+        title="Made for small spaces"
+        desc="Balanced so they feel present, but never heavy — perfect for bedrooms, desks, and studio apartments."
+      />
+      <Feature
+        icon="🎁"
+        title="Easy to gift"
+        desc="Minimal design, calm colors, and versatile scents make Cho a safe choice for friends, family, or yourself."
+      />
+    </div>
+  </div>
+</section>
+    </main>
   );
 }
 
-/* ---------- small presentational components ---------- */
-
-function MoodCard({ title, tagline, desc }) {
+function StoryCard({ eyebrow, title, desc }) {
   return (
-    <article className="bg-[#f7f3e6] rounded-2xl p-5 shadow-sm border border-black/5 hover:-translate-y-1 hover:shadow-md transition">
-      <p className="uppercase tracking-[0.25em] text-[0.7rem] text-gray-500 mb-2">
-        {title}
-      </p>
-      <h3 className="font-heading text-lg mb-1">{tagline}</h3>
-      <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
+    <article className="relative overflow-hidden rounded-2xl bg-[#fbf7ee] border border-black/5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
+      {/* accent stripe */}
+      <div className="absolute inset-y-3 left-3 w-[3px] rounded-full bg-gradient-to-b from-emerald-500/70 via-amber-500/60 to-emerald-500/60" />
+      {/* subtle dot pattern */}
+      <div className="pointer-events-none absolute right-3 top-3 h-16 w-16 rounded-full border border-dashed border-emerald-500/15" />
+
+      <div className="pl-6 pr-5 py-4">
+        <p className="text-[0.7rem] uppercase tracking-[0.18em] text-choForest/55 mb-1.5">
+          {eyebrow}
+        </p>
+        <h3 className="font-heading text-base sm:text-lg mb-1 text-choForest">
+          {title}
+        </h3>
+        <p className="text-sm text-choForest/80 leading-relaxed">{desc}</p>
+      </div>
     </article>
   );
 }
 
-function Feature({ title, desc }) {
+
+function Feature({ icon, title, desc }) {
   return (
-    <div className="bg-[#f7f3e6] rounded-2xl p-5 border border-black/5">
-      <h3 className="font-heading text-base mb-2">{title}</h3>
-      <p className="text-sm leading-relaxed">{desc}</p>
+    <div className="group relative overflow-hidden rounded-2xl bg-[#fbf7ee] border border-black/5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-1">
+      {/* top accent bar */}
+      <div className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-gradient-to-r from-emerald-500/60 via-amber-500/50 to-emerald-500/40 opacity-80" />
+
+      <div className="relative p-5 pt-6">
+        <div className="flex items-center gap-2 mb-2">
+          {icon && (
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 border border-black/5 text-base">
+              {icon}
+            </span>
+          )}
+          <h3 className="font-heading text-base text-choForest">{title}</h3>
+        </div>
+        <p className="text-sm leading-relaxed text-choForest/80">{desc}</p>
+      </div>
     </div>
   );
 }
+
