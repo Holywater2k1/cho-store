@@ -89,12 +89,14 @@ export default function CheckoutPage() {
 
       // 2) create order_items rows
       const itemsToInsert = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.productId,
-        quantity: item.quantity,
-        unit_price: item.price,
-        line_total: item.price * item.quantity,
-      }));
+  order_id: order.id,
+  product_id: item.productId,
+  product_name: item.name,             // 👈 add product_name
+  quantity: item.quantity,
+  unit_price: item.price,
+  line_total: item.price * item.quantity,
+}));
+
 
       const { error: itemsError } = await supabase
         .from("order_items")
