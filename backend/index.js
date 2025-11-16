@@ -10,12 +10,13 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// 🔥 CORS FIX — allow all origins for MVP deployment
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
+    origin: "*",
   })
 );
+
 app.use(express.json());
 
 // Health check
@@ -65,8 +66,10 @@ app.post("/api/create-checkout-session", async (req, res) => {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/cart`,
+
+      // Return to frontend after payment
+      success_url: `https://cho-store.vercel.app/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://cho-store.vercel.app/cart`,
     });
 
     res.json({ url: session.url });
@@ -123,13 +126,13 @@ app.post("/api/confirm-order", async (req, res) => {
 
     const orderId = orderData.id;
 
-    // Insert order items WITH product_name only
+    // Insert order items with product name
     const orderItems = items.map((item) => {
       const p = products.find((x) => x.id === item.productId);
       return {
         order_id: orderId,
         product_id: p.id,
-        product_name: p.name, // ← IMPORTANT
+        product_name: p.name,
         quantity: item.quantity,
         unit_price: p.price,
       };
